@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSpace — Your Gentle Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --lavender: #c8b4e8;
+    --lavender-light: #e8dcf5;
+    --lavender-deep: #9b7cc8;
+    --blush: #f5c6d8;
+    --blush-light: #fde8f0;
+    --blush-deep: #e891b4;
+    --sky: #b4d4f0;
+    --sky-light: #ddeef8;
+    --mint: #b4e8d4;
+    --peach: #f5d4b4;
+    --text-dark: #3d3050;
+    --text-mid: #6b5f82;
+    --text-soft: #9b91b0;
+    --white: #ffffff;
+    --glass-bg: rgba(255,255,255,0.62);
+    --glass-border: rgba(255,255,255,0.85);
+    --shadow-soft: 0 8px 32px rgba(155,124,200,0.13);
+    --shadow-card: 0 4px 24px rgba(155,124,200,0.10);
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 12px;
+    --radius-xl: 32px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: linear-gradient(135deg, #f0eaf8 0%, #fce8f0 40%, #e8f0fc 100%);
+    min-height: 100vh;
+    color: var(--text-dark);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5 { font-family: 'Poppins', sans-serif; }
+
+  /* ── MOBILE SHELL ── */
+  .app-shell {
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+    background: linear-gradient(160deg, #f5effe 0%, #fceef5 50%, #eef3ff 100%);
+    overflow: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+    transition: opacity 0.4s ease;
+    opacity: 0;
+    padding-bottom: 80px;
+  }
+  .screen.active {
+    display: flex;
+    opacity: 1;
+  }
+  .screen.slide-in {
+    animation: slideIn 0.4s cubic-bezier(.4,0,.2,1) forwards;
+  }
+  @keyframes slideIn {
+    from { transform: translateX(40px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    display: none;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0 16px;
+    z-index: 100;
+    box-shadow: 0 -4px 24px rgba(155,124,200,0.10);
+  }
+  .bottom-nav.visible { display: flex; }
+  .nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+    color: var(--text-soft);
+    font-family: 'Poppins', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .nav-btn .icon { font-size: 22px; transition: transform 0.2s; }
+  .nav-btn.active { color: var(--lavender-deep); }
+  .nav-btn.active .icon { transform: scale(1.15); }
+  .nav-btn:hover { color: var(--lavender-deep); }
+
+  /* ── GLASS CARD ── */
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 20px;
+  }
+
+  /* ── GRADIENT BUTTON ── */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--lavender-deep), var(--blush-deep));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 32px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 20px rgba(155,124,200,0.35);
+    letter-spacing: 0.3px;
+    width: 100%;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(155,124,200,0.45); }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-soft {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--lavender-light);
+    color: var(--lavender-deep);
+    border-radius: 50px;
+    padding: 12px 28px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-soft:hover { background: var(--lavender-light); transform: translateY(-1px); }
+
+  /* ── DECORATIVE BLOBS ── */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(50px);
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ═══════════════════════════════════════════
+     1. LOGIN SCREEN
+  ═══════════════════════════════════════════ */
+  #screen-login {
+    justify-content: flex-start;
+    padding: 0;
+    overflow: hidden;
+  }
+  .login-header {
+    position: relative;
+    padding: 60px 32px 40px;
+    text-align: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .login-header .blob-1 { width: 220px; height: 220px; background: var(--lavender); top: -60px; right: -40px; }
+  .login-header .blob-2 { width: 160px; height: 160px; background: var(--blush); bottom: -20px; left: -30px; }
+  .login-header .blob-3 { width: 100px; height: 100px; background: var(--sky); top: 40px; left: 20px; }
+  .login-illustration {
+    position: relative;
+    z-index: 1;
+    font-size: 80px;
+    margin-bottom: 16px;
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .login-header h1 { font-size: 28px; font-weight: 700; color: var(--text-dark); position: relative; z-index: 1; }
+  .login-header p { font-size: 14px; color: var(--text-mid); margin-top: 6px; position: relative; z-index: 1; }
+
+  .login-form-wrap {
+    flex: 1;
+    padding: 0 24px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .input-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-mid);
+    margin-bottom: 6px;
+    font-family: 'Poppins', sans-serif;
+  }
+  .input-field {
+    width: 100%;
+    padding: 13px 16px;
+    border: 1.5px solid rgba(155,124,200,0.25);
+    border-radius: var(--radius-md);
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    font-size: 15px;
+    font-family: 'Lato', sans-serif;
+    color: var(--text-dark);
+    outline: none;
+    transition: all 0.25s;
+  }
+  .input-field:focus { border-color: var(--lavender-deep); box-shadow: 0 0 0 3px rgba(155,124,200,0.15); }
+  .input-field::placeholder { color: var(--text-soft); }
+
+  .social-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 4px 0;
+    color: var(--text-soft);
+    font-size: 13px;
+  }
+  .social-divider::before, .social-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(155,124,200,0.2);
+  }
+  .social-btns { display: flex; gap: 10px; }
+  .social-btn {
+    flex: 1;
+    padding: 11px;
+    border: 1.5px solid rgba(155,124,200,0.25);
+    border-radius: var(--radius-md);
+    background: var(--glass-bg);
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    color: var(--text-mid);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .social-btn:hover { background: var(--lavender-light); border-color: var(--lavender); }
+
+  .privacy-note {
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--text-soft);
+    line-height: 1.6;
+    padding: 0 8px;
+  }
+  .privacy-note span { color: var(--lavender-deep); font-weight: 600; }
+
+  /* ═══════════════════════════════════════════
+     2. HOME SCREEN
+  ═══════════════════════════════════════════ */
+  #screen-home {
+    padding: 0;
+  }
+  .home-header {
+    position: relative;
+    padding: 52px 24px 24px;
+    overflow: hidden;
+  }
+  .home-header .blob-1 { width: 200px; height: 200px; background: var(--lavender); top: -80px; right: -60px; }
+  .home-header .blob-2 { width: 120px; height: 120px; background: var(--blush); bottom: -20px; left: 10px; }
+
+  .home-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 20px;
+  }
+  .greeting { font-size: 22px; font-weight: 700; color: var(--text-dark); }
+  .greeting span { color: var(--lavender-deep); }
+  .streak-badge {
+    background: linear-gradient(135deg, var(--lavender-deep), var(--blush-deep));
+    color: white;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .mood-question {
+    position: relative;
+    z-index: 1;
+    font-size: 16px;
+    color: var(--text-mid);
+    font-weight: 400;
+  }
+
+  .home-body { padding: 0 24px; }
+
+  .mood-selector-card {
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .mood-selector-card h3 {
+    font-size: 15px;
+    color: var(--text-mid);
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+  .mood-emojis {
+    display: flex;
+    justify-content: space-around;
+    gap: 8px;
+  }
+  .mood-emoji-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 2px solid transparent;
+    border-radius: 16px;
+    padding: 10px 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+    flex: 1;
+  }
+  .mood-emoji-btn .emoji { font-size: 32px; display: block; transition: transform 0.3s; }
+  .mood-emoji-btn .mood-label { font-size: 10px; font-family: 'Poppins', sans-serif; font-weight: 500; color: var(--text-soft); }
+  .mood-emoji-btn:hover { transform: translateY(-4px) scale(1.08); }
+  .mood-emoji-btn:hover .emoji { transform: scale(1.15); }
+  .mood-emoji-btn.selected { border-color: var(--lavender-deep); background: var(--lavender-light); }
+  .mood-emoji-btn.selected .emoji { animation: bounceGlow 0.5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes bounceGlow {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.5) rotate(-5deg); }
+    70% { transform: scale(0.9) rotate(3deg); }
+    100% { transform: scale(1.1); }
+  }
+
+  .mood-message-card {
+    margin-bottom: 16px;
+    padding: 18px;
+    background: linear-gradient(135deg, rgba(200,180,232,0.3), rgba(245,198,216,0.3));
+    border: 1px solid rgba(255,255,255,0.8);
+    border-radius: var(--radius-lg);
+    display: none;
+  }
+  .mood-message-card.visible { display: flex; gap: 12px; align-items: center; animation: fadeUp 0.4s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .mood-message-icon { font-size: 28px; flex-shrink: 0; }
+  .mood-message-text { font-size: 14px; color: var(--text-mid); line-height: 1.6; }
+  .mood-message-text strong { color: var(--lavender-deep); font-family: 'Poppins', sans-serif; display: block; margin-bottom: 2px; }
+
+  .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .quick-action-card {
+    padding: 18px 14px;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: center;
+    border: 1px solid var(--glass-border);
+  }
+  .quick-action-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-soft); }
+  .quick-action-card .qa-icon { font-size: 28px; margin-bottom: 8px; }
+  .quick-action-card h4 { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 3px; }
+  .quick-action-card p { font-size: 11px; color: var(--text-soft); }
+  .qa-1 { background: linear-gradient(135deg, rgba(200,180,232,0.4), rgba(180,212,240,0.3)); }
+  .qa-2 { background: linear-gradient(135deg, rgba(245,198,216,0.4), rgba(245,212,180,0.3)); }
+
+  .coordinator-btn-wrap { margin-bottom: 16px; }
+  .coordinator-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(200,180,232,0.5), rgba(245,198,216,0.5));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.25s;
+  }
+  .coordinator-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+  .coordinator-btn-icon { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, var(--lavender-deep), var(--blush-deep)); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .coordinator-btn-text h4 { font-size: 14px; font-weight: 600; color: var(--text-dark); margin-bottom: 2px; }
+  .coordinator-btn-text p { font-size: 12px; color: var(--text-soft); }
+
+  /* ═══════════════════════════════════════════
+     3. COPING SCREEN
+  ═══════════════════════════════════════════ */
+  #screen-coping {
+    padding: 0;
+    background: linear-gradient(160deg, #f0eaf8, #fce8f0, #eef3ff, #e8f5f0);
+    background-size: 400% 400%;
+    animation: gradientShift 8s ease infinite;
+  }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .coping-header {
+    padding: 52px 24px 20px;
+    text-align: center;
+  }
+  .coping-header h2 { font-size: 24px; font-weight: 700; color: var(--text-dark); }
+  .coping-header p { font-size: 14px; color: var(--text-mid); margin-top: 6px; }
+
+  .breathing-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 24px;
+    gap: 24px;
+  }
+  .breathing-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .breath-ring {
+    position: absolute;
+    border-radius: 50%;
+    transition: all 0.1s;
+  }
+  .breath-ring-1 { width: 200px; height: 200px; background: rgba(200,180,232,0.2); animation: pulse1 4s ease-in-out infinite; }
+  .breath-ring-2 { width: 160px; height: 160px; background: rgba(245,198,216,0.25); animation: pulse1 4s ease-in-out infinite 0.5s; }
+  .breath-ring-3 { width: 120px; height: 120px; background: rgba(180,212,240,0.3); animation: pulse1 4s ease-in-out infinite 1s; }
+  @keyframes pulse1 {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.15); opacity: 1; }
+  }
+  .breath-core {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--lavender-deep), var(--blush-deep));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    box-shadow: 0 4px 24px rgba(155,124,200,0.4);
+    animation: breathCore 4s ease-in-out infinite;
+  }
+  @keyframes breathCore {
+    0%, 100% { transform: scale(1); box-shadow: 0 4px 24px rgba(155,124,200,0.4); }
+    50% { transform: scale(1.2); box-shadow: 0 8px 40px rgba(155,124,200,0.6); }
+  }
+  .breath-label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .breath-instruction {
+    font-size: 18px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    color: var(--lavender-deep);
+    text-align: center;
+    animation: instructionPulse 4s ease-in-out infinite;
+  }
+  @keyframes instructionPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  .breath-active .breath-ring-1 { animation: breathExpand 8s ease-in-out infinite; }
+  .breath-active .breath-ring-2 { animation: breathExpand 8s ease-in-out infinite 0.3s; }
+  .breath-active .breath-ring-3 { animation: breathExpand 8s ease-in-out infinite 0.6s; }
+  .breath-active .breath-core { animation: breathCoreActive 8s ease-in-out infinite; }
+  @keyframes breathExpand {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    30% { transform: scale(1.3); opacity: 1; }
+    60% { transform: scale(1.3); opacity: 1; }
+    80% { transform: scale(1); opacity: 0.5; }
+  }
+  @keyframes breathCoreActive {
+    0%, 100% { transform: scale(1); }
+    30% { transform: scale(1.35); }
+    60% { transform: scale(1.35); }
+    80% { transform: scale(1); }
+  }
+
+  .affirmations-scroll {
+    padding: 0 24px;
+    overflow-x: auto;
+    display: flex;
+    gap: 12px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 4px;
+  }
+  .affirmations-scroll::-webkit-scrollbar { display: none; }
+  .affirmation-card {
+    flex-shrink: 0;
+    width: 180px;
+    padding: 18px 16px;
+    border-radius: var(--radius-lg);
+    text-align: center;
+  }
+  .affirmation-card .aff-emoji { font-size: 28px; margin-bottom: 10px; }
+  .affirmation-card p { font-size: 13px; font-family: 'Poppins', sans-serif; font-weight: 500; color: var(--text-dark); line-height: 1.5; }
+  .aff-1 { background: linear-gradient(135deg, rgba(200,180,232,0.4), rgba(180,212,240,0.3)); border: 1px solid rgba(255,255,255,0.8); }
+  .aff-2 { background: linear-gradient(135deg, rgba(245,198,216,0.4), rgba(245,212,180,0.3)); border: 1px solid rgba(255,255,255,0.8); }
+  .aff-3 { background: linear-gradient(135deg, rgba(180,232,212,0.4), rgba(180,212,240,0.3)); border: 1px solid rgba(255,255,255,0.8); }
+  .aff-4 { background: linear-gradient(135deg, rgba(245,212,180,0.4), rgba(245,198,216,0.3)); border: 1px solid rgba(255,255,255,0.8); }
+
+  /* ═══════════════════════════════════════════
+     4. HISTORY SCREEN
+  ═══════════════════════════════════════════ */
+  .screen-header {
+    padding: 52px 24px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .screen-header .blob-1 { width: 180px; height: 180px; background: var(--lavender); top: -60px; right: -40px; opacity: 0.3; }
+  .screen-header h2 { font-size: 24px; font-weight: 700; color: var(--text-dark); position: relative; z-index: 1; }
+  .screen-header p { font-size: 14px; color: var(--text-mid); margin-top: 4px; position: relative; z-index: 1; }
+
+  .history-body { padding: 0 24px; }
+
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stat-chip {
+    padding: 14px 10px;
+    border-radius: var(--radius-md);
+    text-align: center;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+  }
+  .stat-chip .stat-val { font-size: 22px; font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--lavender-deep); }
+  .stat-chip .stat-lbl { font-size: 10px; color: var(--text-soft); margin-top: 2px; font-family: 'Poppins', sans-serif; font-weight: 500; }
+
+  .chart-card { margin-bottom: 16px; }
+  .chart-card h3 { font-size: 15px; font-weight: 600; color: var(--text-dark); margin-bottom: 16px; }
+
+  .mood-history-list h3 { font-size: 15px; font-weight: 600; color: var(--text-dark); margin-bottom: 12px; }
+  .history-day-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    margin-bottom: 10px;
+  }
+  .hist-date { font-size: 12px; font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text-soft); width: 50px; flex-shrink: 0; }
+  .hist-emoji { font-size: 28px; flex-shrink: 0; }
+  .hist-info { flex: 1; }
+  .hist-mood-name { font-size: 14px; font-weight: 600; color: var(--text-dark); font-family: 'Poppins', sans-serif; }
+  .hist-note { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+  .hist-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ═══════════════════════════════════════════
+     5. INSIGHTS SCREEN
+  ═══════════════════════════════════════════ */
+  .insights-body { padding: 0 24px; }
+
+  .insight-card {
+    margin-bottom: 14px;
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+  }
+  .insight-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .insight-icon { font-size: 24px; }
+  .insight-title { font-size: 14px; font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text-dark); }
+
+  .trend-bars { display: flex; gap: 6px; align-items: flex-end; height: 60px; margin-bottom: 12px; }
+  .trend-bar {
+    flex: 1;
+    border-radius: 6px 6px 0 0;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+  }
+  .trend-bar:hover { opacity: 1; }
+  .trend-labels { display: flex; gap: 6px; }
+  .trend-lbl { flex: 1; text-align: center; font-size: 10px; color: var(--text-soft); font-family: 'Poppins', sans-serif; }
+
+  .suggestion-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, rgba(200,180,232,0.2), rgba(245,198,216,0.2));
+    border: 1px solid rgba(255,255,255,0.7);
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .suggestion-card:hover { transform: translateX(4px); }
+  .sug-icon { font-size: 24px; flex-shrink: 0; }
+  .sug-text { flex: 1; }
+  .sug-text strong { font-size: 13px; font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text-dark); display: block; }
+  .sug-text span { font-size: 12px; color: var(--text-soft); }
+  .sug-arrow { color: var(--text-soft); font-size: 18px; }
+
+  .streak-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .streak-card {
+    padding: 18px 14px;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    border: 1px solid var(--glass-border);
+  }
+  .streak-card .s-val { font-size: 32px; font-family: 'Poppins', sans-serif; font-weight: 700; }
+  .streak-card .s-unit { font-size: 12px; color: var(--text-soft); font-family: 'Poppins', sans-serif; margin-top: 2px; }
+  .streak-card .s-lbl { font-size: 11px; font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text-mid); margin-top: 4px; }
+  .sc-1 { background: linear-gradient(135deg, rgba(200,180,232,0.35), rgba(180,212,240,0.25)); }
+  .sc-2 { background: linear-gradient(135deg, rgba(245,198,216,0.35), rgba(245,212,180,0.25)); }
+
+  /* ═══════════════════════════════════════════
+     6. COMMUNITY SCREEN
+  ═══════════════════════════════════════════ */
+  .community-body { padding: 0 24px; }
+
+  .topic-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    margin-bottom: 16px;
+    padding-bottom: 2px;
+  }
+  .topic-tabs::-webkit-scrollbar { display: none; }
+  .topic-tab {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    border: 1.5px solid rgba(155,124,200,0.25);
+    background: var(--glass-bg);
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .topic-tab.active { background: var(--lavender-deep); color: white; border-color: var(--lavender-deep); }
+  .topic-tab:hover:not(.active) { border-color: var(--lavender-deep); color: var(--lavender-deep); }
+
+  .safety-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(180,232,212,0.3), rgba(180,212,240,0.3));
+    border: 1px solid rgba(255,255,255,0.8);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: var(--text-mid);
+  }
+  .safety-banner .s-icon { font-size: 18px; flex-shrink: 0; }
+
+  .community-post {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    margin-bottom: 12px;
+    animation: fadeUp 0.3s ease;
+  }
+  .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .anon-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .post-meta { flex: 1; }
+  .post-meta .post-user { font-size: 13px; font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text-dark); }
+  .post-meta .post-time { font-size: 11px; color: var(--text-soft); }
+  .post-mood-tag {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .post-body { font-size: 14px; color: var(--text-mid); line-height: 1.6; margin-bottom: 14px; }
+  .post-reactions { display: flex; gap: 8px; align-items: center; }
+  .reaction-btn {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1.5px solid rgba(155,124,200,0.2);
+    background: rgba(255,255,255,0.5);
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+    font-family: 'Lato', sans-serif;
+    color: var(--text-mid);
+  }
+  .reaction-btn:hover { background: var(--lavender-light); border-color: var(--lavender-deep); transform: scale(1.05); }
+  .reaction-btn.reacted { background: var(--lavender-light); border-color: var(--lavender-deep); color: var(--lavender-deep); }
+  .post-report { margin-left: auto; background: none; border: none; font-size: 11px; color: var(--text-soft); cursor: pointer; padding: 4px; }
+
+  .new-post-btn {
+    position: fixed;
+    bottom: 90px;
+    right: 50%;
+    transform: translateX(calc(50% - 215px + 24px));
+    background: linear-gradient(135deg, var(--lavender-deep), var(--blush-deep));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 22px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(155,124,200,0.4);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s;
+    z-index: 50;
+  }
+  .new-post-btn:hover { transform: translateX(calc(50% - 215px + 24px)) translateY(-2px); box-shadow: 0 8px 28px rgba(155,124,200,0.5); }
+
+  /* ═══════════════════════════════════════════
+     7. ANONYMOUS CHAT SCREEN
+  ═══════════════════════════════════════════ */
+  #screen-anon-chat {
+    display: none;
+    flex-direction: column;
+  }
+  #screen-anon-chat.active { display: flex; }
+
+  .chat-topbar {
+    padding: 52px 20px 16px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .chat-back-btn { background: none; border: none; cursor: pointer; font-size: 22px; color: var(--text-mid); padding: 4px; }
+  .chat-avatar-wrap { position: relative; }
+  .chat-avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; background: linear-gradient(135deg, var(--lavender-light), var(--blush-light)); border: 2px solid var(--glass-border); }
+  .online-dot { position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; border-radius: 50%; background: #6fcf97; border: 2px solid white; }
+  .chat-info { flex: 1; }
+  .chat-info h4 { font-size: 15px; font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text-dark); }
+  .chat-info p { font-size: 11px; color: var(--text-soft); }
+  .privacy-badge { padding: 6px 12px; border-radius: 20px; background: linear-gradient(135deg, rgba(180,232,212,0.4), rgba(180,212,240,0.4)); border: 1px solid rgba(255,255,255,0.8); font-size: 11px; font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text-mid); display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .chat-bubble {
+    max-width: 78%;
+    padding: 12px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-dark);
+    position: relative;
+  }
+  .chat-bubble.received {
+    align-self: flex-start;
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-bottom-left-radius: 6px;
+  }
+  .chat-bubble.sent {
+    align-self: flex-end;
+    background: linear-gradient(135deg, var(--lavender-deep), var(--blush-deep));
+    color: white;
+    border-bottom-right-radius: 6px;
+    box-shadow: 0 4px 14px rgba(155,124,200,0.3);
+  }
+  .chat-bubble.sent .bubble-time { color: rgba(255,255,255,0.7); }
+  .bubble-time { font-size: 10px; color: var(--text-soft); margin-top: 4px; text-align: right; }
+  .bubble-reactions { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+  .bubble-emoji-btn { background: rgba(255,255,255,0.4); border: none; border-radius: 12px; padding: 2px 8px; font-size: 14px; cursor: pointer; transition: transform 0.2s; }
+  .bubble-emoji-btn:hover { transform: scale(1.2); }
+
+  .chat-input-area {
+    padding: 12px 16px 28px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+  .chat-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1.5px solid rgba(155,124,200,0.25);
+    border-radius: 24px;
+    background: rgba(255,255,255,0.6);
+    font-size: 14px;
+    font-family: 'Lato', sans-serif;
+    resize: none;
+    outline: none;
+    max-height: 100px;
+    color: var(--text-dark);
+    transition: border-color 0.2s;
+  }
+  .chat-input:focus { border-color: var(--lavender-deep); }
+  .chat-send-btn { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--lavender-deep), var(--blush-deep)); border: none; color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; box-shadow: 0 4px 14px rgba(155,124,200,0.3); }
+  .chat-send-btn:hover { transform: scale(1.08); }
+
+  /* ═══════════════════════════════════════════
+     8. COORDINATOR SCREEN
+  ═══════════════════════════════════════════ */
+  #screen-coordinator { display: none; flex-direction: column; }
+  #screen-coordinator.active { display: flex; }
+
+  .verified-badge { display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: linear-gradient(135deg, rgba(200,180,232,0.4), rgba(180,212,240,0.3)); border: 1px solid rgba(255,255,255,0.8); border-radius: 20px; font-size: 12px; font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text-mid); }
+  .verified-dot { width: 8px; height: 8px; border-radius: 50%; background: #6fcf97; }
+
+  .booking-section {
+    padding: 16px 24px;
+  }
+  .booking-section h3 { font-size: 16px; font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text-dark); margin-bottom: 14px; }
+  .date-picker { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-bottom: 14px; }
+  .date-picker::-webkit-scrollbar { display: none; }
+  .date-chip {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid rgba(155,124,200,0.25);
+    background: var(--glass-bg);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .date-chip.selected { background: var(--lavender-deep); border-color: var(--lavender-deep); color: white; }
+  .date-chip .d-day { font-size: 11px; font-family: 'Poppins', sans-serif; color: inherit; opacity: 0.8; }
+  .date-chip .d-num { font-size: 18px; font-family: 'Poppins', sans-serif; font-weight: 700; color: inherit; }
+  .time-picker { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .time-chip {
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid rgba(155,124,200,0.25);
+    background: var(--glass-bg);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    color: var(--text-mid);
+  }
+  .time-chip.selected { background: var(--lavender-deep); border-color: var(--lavender-deep); color: white; }
+  .time-chip:hover:not(.selected) { border-color: var(--lavender-deep); color: var(--lavender-deep); }
+  .disclaimer-note { font-size: 11.5px; color: var(--text-soft); text-align: center; line-height: 1.6; padding: 10px 0; }
+  .disclaimer-note strong { color: var(--blush-deep); }
+
+  /* ═══════════════════════════════════════════
+     MODALS
+  ═══════════════════════════════════════════ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(61,48,80,0.4);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 200;
+    max-width: 430px;
+    margin: 0 auto;
+  }
+  .modal-overlay.visible { display: flex; }
+  .modal-sheet {
+    background: linear-gradient(160deg, #f5effe, #fceef5);
+    border-radius: 28px 28px 0 0;
+    padding: 24px 24px 40px;
+    width: 100%;
+    animation: slideUp 0.35s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle { width: 40px; height: 4px; border-radius: 2px; background: rgba(155,124,200,0.3); margin: 0 auto 20px; }
+  .modal-sheet h3 { font-size: 18px; font-weight: 700; color: var(--text-dark); margin-bottom: 10px; text-align: center; }
+  .modal-sheet p { font-size: 14px; color: var(--text-mid); line-height: 1.6; text-align: center; margin-bottom: 20px; }
+  .modal-btns { display: flex; flex-direction: column; gap: 10px; }
+
+  /* ═══════════════════════════════════════════
+     NEW POST MODAL
+  ═══════════════════════════════════════════ */
+  .new-post-textarea {
+    width: 100%;
+    height: 100px;
+    padding: 14px;
+    border: 1.5px solid rgba(155,124,200,0.25);
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,0.6);
+    font-size: 14px;
+    font-family: 'Lato', sans-serif;
+    color: var(--text-dark);
+    resize: none;
+    outline: none;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+  .new-post-textarea:focus { border-color: var(--lavender-deep); }
+  .mood-tag-select {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .mood-tag-option {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    border: 1.5px solid rgba(155,124,200,0.3);
+    background: var(--glass-bg);
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-mid);
+  }
+  .mood-tag-option.selected { background: var(--lavender-deep); color: white; border-color: var(--lavender-deep); }
+
+  /* Scrollbar custom */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(155,124,200,0.3); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ═══════════ SCREEN 1: LOGIN ═══════════ -->
+  <div id="screen-login" class="screen active">
+    <div class="login-header">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+      <div class="login-illustration">🌸</div>
+      <h1>SafeSpace</h1>
+      <p>Your gentle companion for every feeling 💜</p>
+    </div>
+    <div class="login-form-wrap">
+      <div class="input-group">
+        <label>Your Name</label>
+        <input type="text" class="input-field" id="loginName" placeholder="What shall we call you?">
+      </div>
+      <div class="input-group">
+        <label>Email or Phone</label>
+        <input type="email" class="input-field" placeholder="you@example.com">
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" class="input-field" placeholder="••••••••">
+      </div>
+      <button class="btn-primary" onclick="doLogin()">🌷 Enter Safe Space</button>
+      <div class="social-divider">or continue with</div>
+      <div class="social-btns">
+        <button class="social-btn" onclick="doLogin()">🇬 Google</button>
+        <button class="social-btn" onclick="doLogin()">🍎 Apple</button>
+        <button class="social-btn" onclick="doLogin()">📱 Phone</button>
+      </div>
+      <p class="privacy-note">🔒 Your data is <span>end-to-end encrypted</span> and never shared.<br>You are safe here.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════ SCREEN 2: HOME ═══════════ -->
+  <div id="screen-home" class="screen">
+    <div class="home-header">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="home-header-top">
+        <div>
+          <div class="greeting">Hello, <span id="userName">there</span> 🌸</div>
+          <div class="mood-question" style="margin-top:4px;">How are you feeling today?</div>
+        </div>
+        <div class="streak-badge">🔥 7 days</div>
+      </div>
+    </div>
+
+    <div class="home-body">
+      <div class="glass-card mood-selector-card">
+        <h3>Tap to select your mood</h3>
+        <div class="mood-emojis">
+          <button class="mood-emoji-btn" onclick="selectMood(this,'happy','😊','Joyful')" data-mood="happy">
+            <span class="emoji">😊</span><span class="mood-label">Joyful</span>
+          </button>
+          <button class="mood-emoji-btn" onclick="selectMood(this,'sad','😔','Sad')" data-mood="sad">
+            <span class="emoji">😔</span><span class="mood-label">Sad</span>
+          </button>
+          <button class="mood-emoji-btn" onclick="selectMood(this,'anxious','😟','Anxious')" data-mood="anxious">
+            <span class="emoji">😟</span><span class="mood-label">Anxious</span>
+          </button>
+          <button class="mood-emoji-btn" onclick="selectMood(this,'angry','😡','Stressed')" data-mood="angry">
+            <span class="emoji">😡</span><span class="mood-label">Stressed</span>
+          </button>
+          <button class="mood-emoji-btn" onclick="selectMood(this,'calm','😌','Calm')" data-mood="calm">
+            <span class="emoji">😌</span><span class="mood-label">Calm</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="mood-message" class="mood-message-card">
+        <div class="mood-message-icon" id="msgIcon">💜</div>
+        <div class="mood-message-text">
+          <strong id="msgTitle">You're doing great</strong>
+          <span id="msgBody">Keep going — every feeling is valid.</span>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <div class="glass-card quick-action-card qa-1" onclick="goTo('coping')">
+          <div class="qa-icon">🌬️</div>
+          <h4>Breathe</h4>
+          <p>Calm your mind</p>
+        </div>
+        <div class="glass-card quick-action-card qa-2" onclick="goTo('community')">
+          <div class="qa-icon">🤝</div>
+          <h4>Community</h4>
+          <p>You're not alone</p>
+        </div>
+      </div>
+
+      <div class="coordinator-btn-wrap">
+        <button class="coordinator-btn glass-card" style="padding:16px;" onclick="showPrivacyModal()">
+          <div class="coordinator-btn-icon">👩‍💼</div>
+          <div class="coordinator-btn-text">
+            <h4>Chat with a Coordinator</h4>
+            <p>Verified listener • Confidential</p>
+          </div>
+          <span style="color:var(--text-soft);font-size:20px;">›</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ SCREEN 3: COPING ═══════════ -->
+  <div id="screen-coping" class="screen">
+    <div class="coping-header">
+      <h2>🌿 Breathe & Restore</h2>
+      <p>A moment just for you</p>
+    </div>
+
+    <div class="breathing-section">
+      <div class="breathing-container" id="breathingContainer">
+        <div class="breath-ring breath-ring-1"></div>
+        <div class="breath-ring breath-ring-2"></div>
+        <div class="breath-ring breath-ring-3"></div>
+        <div class="breath-core">
+          <div class="breath-label" id="breathLabel">Tap<br>Start</div>
+        </div>
+      </div>
+      <div class="breath-instruction" id="breathInstruction">Ready to breathe?</div>
+      <button class="btn-primary" id="breathBtn" onclick="toggleBreath()" style="max-width:200px;">Start Breathing</button>
+    </div>
+
+    <div style="padding: 0 0 16px 24px;">
+      <h3 style="font-size:15px;font-weight:600;color:var(--text-dark);margin-bottom:12px;padding-right:24px;">Daily Affirmations ✨</h3>
+    </div>
+    <div class="affirmations-scroll" style="padding-left:24px;">
+      <div class="affirmation-card aff-1"><div class="aff-emoji">💜</div><p>I am worthy of love and compassion</p></div>
+      <div class="affirmation-card aff-2"><div class="aff-emoji">🌸</div><p>My feelings are valid and heard</p></div>
+      <div class="affirmation-card aff-3"><div class="aff-emoji">✨</div><p>I choose peace over anxiety</p></div>
+      <div class="affirmation-card aff-4"><div class="aff-emoji">🌿</div><p>Each breath brings me calm and clarity</p></div>
+    </div>
+
+    <div style="padding: 20px 24px 0;">
+      <div class="glass-card" style="padding:18px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:24px;">🎵</span>
+          <h4 style="font-size:14px;font-weight:600;color:var(--text-dark);">Calming Sounds</h4>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:rgba(200,180,232,0.2);cursor:pointer;">
+            <span style="font-size:20px;">🌊</span>
+            <span style="font-size:13px;color:var(--text-mid);font-family:'Poppins',sans-serif;font-weight:500;">Ocean Waves</span>
+            <span style="margin-left:auto;font-size:18px;">▶</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:rgba(245,198,216,0.2);cursor:pointer;">
+            <span style="font-size:20px;">🌧️</span>
+            <span style="font-size:13px;color:var(--text-mid);font-family:'Poppins',sans-serif;font-weight:500;">Gentle Rain</span>
+            <span style="margin-left:auto;font-size:18px;">▶</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:16px 24px 0;">
+      <button class="coordinator-btn glass-card" style="padding:16px;width:100%;border:none;" onclick="showPrivacyModal()">
+        <div class="coordinator-btn-icon">👩‍💼</div>
+        <div class="coordinator-btn-text">
+          <h4>Chat with a Coordinator</h4>
+          <p>Available now • Confidential</p>
+        </div>
+        <span style="color:var(--text-soft);font-size:20px;">›</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════ SCREEN 4: HISTORY ═══════════ -->
+  <div id="screen-history" class="screen">
+    <div class="screen-header">
+      <div class="blob blob-1"></div>
+      <h2>📊 Mood History</h2>
+      <p>Your emotional journey this week</p>
+    </div>
+    <div class="history-body">
+      <div class="stats-row">
+        <div class="stat-chip"><div class="stat-val">7</div><div class="stat-lbl">Day Streak</div></div>
+        <div class="stat-chip"><div class="stat-val">😊</div><div class="stat-lbl">Top Mood</div></div>
+        <div class="stat-chip"><div class="stat-val">12</div><div class="stat-lbl">Sessions</div></div>
+      </div>
+      <div class="glass-card chart-card">
+        <h3>This Week</h3>
+        <canvas id="moodChart" height="180"></canvas>
+      </div>
+      <div class="mood-history-list">
+        <h3>Recent Days</h3>
+        <div id="historyList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ SCREEN 5: INSIGHTS ═══════════ -->
+  <div id="screen-insights" class="screen">
+    <div class="screen-header">
+      <div class="blob blob-1" style="background:var(--blush);"></div>
+      <h2>💡 Gentle Insights</h2>
+      <p>Patterns that support your growth</p>
+    </div>
+    <div class="insights-body">
+      <div class="streak-cards">
+        <div class="streak-card sc-1">
+          <div class="s-val" style="color:var(--lavender-deep);">🔥 7</div>
+          <div class="s-unit">days</div>
+          <div class="s-lbl">Check-in Streak</div>
+        </div>
+        <div class="streak-card sc-2">
+          <div class="s-val" style="color:var(--blush-deep);">💨 5</div>
+          <div class="s-unit">sessions</div>
+          <div class="s-lbl">Breathing This Week</div>
+        </div>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-card-header">
+          <span class="insight-icon">📅</span>
+          <span class="insight-title">Weekly Mood Trend</span>
+        </div>
+        <div class="trend-bars">
+          <div class="trend-bar" style="height:40%;background:linear-gradient(180deg,#b4e8d4,#b4d4f0);"></div>
+          <div class="trend-bar" style="height:60%;background:linear-gradient(180deg,#c8b4e8,#f5c6d8);"></div>
+          <div class="trend-bar" style="height:80%;background:linear-gradient(180deg,#c8b4e8,#f5c6d8);"></div>
+          <div class="trend-bar" style="height:55%;background:linear-gradient(180deg,#f5d4b4,#f5c6d8);"></div>
+          <div class="trend-bar" style="height:90%;background:linear-gradient(180deg,#c8b4e8,#f5c6d8);"></div>
+          <div class="trend-bar" style="height:70%;background:linear-gradient(180deg,#b4e8d4,#b4d4f0);"></div>
+          <div class="trend-bar" style="height:85%;background:linear-gradient(180deg,#c8b4e8,#f5c6d8);"></div>
+        </div>
+        <div class="trend-labels">
+          <div class="trend-lbl">Mon</div><div class="trend-lbl">Tue</div><div class="trend-lbl">Wed</div>
+          <div class="trend-lbl">Thu</div><div class="trend-lbl">Fri</div><div class="trend-lbl">Sat</div>
+          <div class="trend-lbl">Sun</div>
+        </div>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-card-header">
+          <span class="insight-icon">🌤️</span>
+          <span class="insight-title">Your Patterns</span>
+        </div>
+        <p style="font-size:14px;color:var(--text-mid);line-height:1.7;">You tend to feel <strong style="color:var(--lavender-deep);">calmer in the mornings</strong> 🌅 and experience more stress mid-week. This is completely normal! Many women find Thursdays challenging.</p>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <h3 style="font-size:15px;font-weight:600;color:var(--text-dark);margin-bottom:12px;font-family:'Poppins',sans-serif;">Gentle Suggestions 🌿</h3>
+        <div class="suggestion-card" onclick="goTo('coping')">
+          <div class="sug-icon">💨</div>
+          <div class="sug-text"><strong>Try breathing when anxious</strong><span>A 2-min session can shift your whole mood</span></div>
+          <div class="sug-arrow">›</div>
+        </div>
+        <div class="suggestion-card">
+          <div class="sug-icon">🌙</div>
+          <div class="sug-text"><strong>Evening wind-down ritual</strong><span>Check in before bed to track night patterns</span></div>
+          <div class="sug-arrow">›</div>
+        </div>
+        <div class="suggestion-card" onclick="goTo('community')">
+          <div class="sug-icon">🤝</div>
+          <div class="sug-text"><strong>You're not alone on Thursdays</strong><span>Others feel the mid-week dip too</span></div>
+          <div class="sug-arrow">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ SCREEN 6: COMMUNITY ═══════════ -->
+  <div id="screen-community" class="screen">
+    <div class="screen-header">
+      <div class="blob blob-1" style="background:var(--blush);"></div>
+      <h2>🤝 Community</h2>
+      <p>Anonymous support — you're not alone</p>
+    </div>
+    <div class="community-body">
+      <div class="topic-tabs" id="topicTabs">
+        <button class="topic-tab active" onclick="filterTopic(this,'all')">All ✨</button>
+        <button class="topic-tab" onclick="filterTopic(this,'study')">Study Stress 📚</button>
+        <button class="topic-tab" onclick="filterTopic(this,'night')">Late Night Feels 🌙</button>
+        <button class="topic-tab" onclick="filterTopic(this,'wins')">Small Wins 🎉</button>
+        <button class="topic-tab" onclick="filterTopic(this,'grief')">Processing 💜</button>
+      </div>
+
+      <div class="safety-banner">
+        <span class="s-icon">🛡️</span>
+        <span>This is a kind & safe space. Our kindness policy is always active. <button style="background:none;border:none;color:var(--lavender-deep);font-weight:600;cursor:pointer;font-size:12px;">Learn more</button></span>
+      </div>
+
+      <div id="communityFeed"></div>
+    </div>
+    <button class="new-post-btn" onclick="openNewPost()">✏️ Share Anonymously</button>
+  </div>
+
+  <!-- ═══════════ SCREEN 7: ANON CHAT ═══════════ -->
+  <div id="screen-anon-chat" class="screen">
+    <div class="chat-topbar">
+      <button class="chat-back-btn" onclick="goTo('community')">‹</button>
+      <div class="chat-avatar-wrap">
+        <div class="chat-avatar">🌸</div>
+        <div class="online-dot"></div>
+      </div>
+      <div class="chat-info">
+        <h4>Anonymous Friend</h4>
+        <p>Peer support chat</p>
+      </div>
+      <div class="privacy-badge">🔒 Private</div>
+    </div>
+    <div class="chat-messages" id="anonMessages">
+      <div class="chat-bubble received">
+        <div>Hey 🌸 I'm here with you, anonymously. What's on your mind?</div>
+        <div class="bubble-time">2:14 PM</div>
+        <div class="bubble-reactions">
+          <button class="bubble-emoji-btn">💜</button>
+          <button class="bubble-emoji-btn">🤗</button>
+          <button class="bubble-emoji-btn">✨</button>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <textarea class="chat-input" id="anonInput" placeholder="Share what you're feeling..." rows="1" onkeydown="handleAnonEnter(event)"></textarea>
+      <button class="chat-send-btn" onclick="sendAnonMessage()">➤</button>
+    </div>
+  </div>
+
+  <!-- ═══════════ SCREEN 8: COORDINATOR ═══════════ -->
+  <div id="screen-coordinator" class="screen" style="padding-bottom:80px;">
+    <div class="chat-topbar" style="padding-top:52px;">
+      <button class="chat-back-btn" onclick="goTo('home')">‹</button>
+      <div class="chat-avatar-wrap">
+        <div class="chat-avatar" style="background:linear-gradient(135deg,var(--lavender-deep),var(--blush-deep));color:white;font-size:22px;">👩‍💼</div>
+        <div class="online-dot"></div>
+      </div>
+      <div class="chat-info">
+        <h4>Dr. Amara Singh</h4>
+        <p>Licensed Coordinator</p>
+      </div>
+      <div class="verified-badge"><div class="verified-dot"></div> Verified</div>
+    </div>
+
+    <div class="chat-messages" id="coordMessages">
+      <div class="chat-bubble received">
+        <div>Welcome 💜 I'm Dr. Amara, your confidential coordinator. This is a safe space. How can I support you today?</div>
+        <div class="bubble-time">Now</div>
+      </div>
+    </div>
+    <div class="chat-input-area" style="padding-bottom:20px;">
+      <textarea class="chat-input" id="coordInput" placeholder="Message Dr. Amara..." rows="1" onkeydown="handleCoordEnter(event)"></textarea>
+      <button class="chat-send-btn" onclick="sendCoordMessage()">➤</button>
+    </div>
+
+    <div class="booking-section" style="padding-top:0;border-top:1px solid rgba(155,124,200,0.15);margin: 0 0 16px;">
+      <div style="padding:16px 24px 0;">
+        <h3>📅 Book a Therapy Session</h3>
+        <p style="font-size:13px;color:var(--text-soft);margin-bottom:14px;">Select a date and time that works for you</p>
+        <div class="date-picker" id="datePicker"></div>
+        <p style="font-size:13px;font-family:'Poppins',sans-serif;font-weight:600;color:var(--text-dark);margin-bottom:10px;">Available Times</p>
+        <div class="time-picker" id="timePicker"></div>
+        <button class="btn-primary" id="bookBtn" onclick="confirmBooking()" style="opacity:0.5;pointer-events:none;">Request Session</button>
+        <p class="disclaimer-note">⚠️ <strong>Not for emergencies.</strong> If you're in crisis, please call <strong>iCall: 9152987821</strong> or visit your nearest support center.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ BOTTOM NAV ═══════════ -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-btn active" onclick="goTo('home')" id="nav-home">
+      <span class="icon">🏠</span><span>Home</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('coping')" id="nav-coping">
+      <span class="icon">🌿</span><span>Breathe</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('history')" id="nav-history">
+      <span class="icon">📊</span><span>History</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('insights')" id="nav-insights">
+      <span class="icon">💡</span><span>Insights</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('community')" id="nav-community">
+      <span class="icon">🤝</span><span>Community</span>
+    </button>
+  </nav>
+
+  <!-- ═══════════ MODALS ═══════════ -->
+  <!-- Privacy Modal -->
+  <div class="modal-overlay" id="privacyModal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <h3>🔒 Confidential Conversation</h3>
+      <p>Your conversation with a coordinator is <strong>completely private</strong>. Your identity is never shared. You can end the chat at any time.</p>
+      <div style="display:flex;gap:10px;padding:12px 0;justify-content:center;align-items:center;font-size:13px;color:var(--text-soft);flex-wrap:wrap;">
+        <span>🛡️ End-to-end encrypted</span>
+        <span>•</span>
+        <span>👁️ Anonymous</span>
+        <span>•</span>
+        <span>💜 Judgment-free</span>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-primary" onclick="openCoordinator()">💜 Start Confidential Chat</button>
+        <button class="btn-soft" onclick="closeModal('privacyModal')">Maybe Later</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Post Modal -->
+  <div class="modal-overlay" id="newPostModal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <h3>💬 Share Anonymously</h3>
+      <p style="font-size:13px;">You're completely anonymous. Your post is safe here.</p>
+      <textarea class="new-post-textarea" id="postContent" placeholder="What's on your mind? 🌸"></textarea>
+      <p style="font-size:13px;font-family:'Poppins',sans-serif;font-weight:600;color:var(--text-dark);margin-bottom:10px;">Add a tag</p>
+      <div class="mood-tag-select">
+        <div class="mood-tag-option" onclick="selectPostTag(this,'study stress')">📚 Study</div>
+        <div class="mood-tag-option" onclick="selectPostTag(this,'late night')">🌙 Late Night</div>
+        <div class="mood-tag-option" onclick="selectPostTag(this,'small win')">🎉 Win</div>
+        <div class="mood-tag-option" onclick="selectPostTag(this,'anxious')">😟 Anxious</div>
+        <div class="mood-tag-option" onclick="selectPostTag(this,'grateful')">💜 Grateful</div>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-primary" onclick="submitPost()">Post Anonymously ✨</button>
+        <button class="btn-soft" onclick="closeModal('newPostModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Confirm Modal -->
+  <div class="modal-overlay" id="bookingModal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div style="font-size:48px;text-align:center;margin-bottom:10px;">🎉</div>
+      <h3>Session Requested!</h3>
+      <p>Your therapy session has been requested. Dr. Amara will confirm via a gentle notification. You'll receive a reminder 30 minutes before.</p>
+      <button class="btn-primary" onclick="closeModal('bookingModal')">Wonderful, Thank You 💜</button>
+    </div>
+  </div>
+
+</div><!-- /app-shell -->
+
+<script>
+// ═══════════════════════════════
+// STATE
+// ═══════════════════════════════
+const state = {
+  currentScreen: 'login',
+  currentMood: null,
+  moodHistory: [
+    { date: 'Mon', emoji: '😊', mood: 'happy', name: 'Joyful', note: 'Had a great study session', color: '#c8b4e8' },
+    { date: 'Tue', emoji: '😟', mood: 'anxious', name: 'Anxious', note: 'Exam prep stress', color: '#f5d4b4' },
+    { date: 'Wed', emoji: '😌', mood: 'calm', name: 'Calm', note: 'Did breathing exercises', color: '#b4e8d4' },
+    { date: 'Thu', emoji: '😔', mood: 'sad', name: 'Sad', note: 'Missing home', color: '#b4d4f0' },
+    { date: 'Fri', emoji: '😊', mood: 'happy', name: 'Joyful', note: 'Hung out with friends', color: '#c8b4e8' },
+    { date: 'Sat', emoji: '😌', mood: 'calm', name: 'Calm', note: 'Self-care day', color: '#b4e8d4' },
+    { date: 'Today', emoji: '✨', mood: 'happy', name: 'Hopeful', note: 'Ready for the week', color: '#f5c6d8' },
+  ],
+  breathActive: false,
+  breathInterval: null,
+  breathPhase: 0,
+  communityPosts: [
+    { id:1, avatar:'🌸', user:'Soft Petal', time:'2 min ago', tag:'anxious', tagColor:'rgba(245,212,180,0.7)', body:"I've been so overwhelmed with finals. Does anyone else feel like they're carrying the whole world? 😢", hearts:14, notAlone:28, topic:'study' },
+    { id:2, avatar:'🦋', user:'Blue Butterfly', time:'15 min ago', tag:'small win', tagColor:'rgba(200,180,232,0.7)', body:"I finally asked for help today. It felt so hard but I did it. Baby steps count. 💜", hearts:42, notAlone:56, topic:'wins' },
+    { id:3, avatar:'🌙', user:'Night Bloom', time:'1 hr ago', tag:'late night', tagColor:'rgba(180,212,240,0.7)', body:"3am and my brain won't stop. The silence feels loud tonight. Anyone else awake?", hearts:31, notAlone:67, topic:'night' },
+    { id:4, avatar:'🌻', user:'Sunny Steps', time:'2 hrs ago', tag:'grateful', tagColor:'rgba(180,232,212,0.7)', body:"Small win: I made my bed AND ate breakfast today. For me, that's a huge deal 🌸", hearts:89, notAlone:103, topic:'wins' },
+    { id:5, avatar:'🌊', user:'Ocean Soul', time:'3 hrs ago', tag:'anxious', tagColor:'rgba(245,212,180,0.7)', body:"Therapy waiting lists are so long. How are you all coping in the meantime?", hearts:22, notAlone:44, topic:'study' },
+  ],
+  reactions: {},
+  currentTopic: 'all',
+  selectedPostTag: '',
+  selectedDate: null,
+  selectedTime: null,
+};
+
+const moodMessages = {
+  happy: { icon:'🌟', title:"You're glowing today!", body:"Hold onto this feeling. You deserve all the joy coming your way 💜" },
+  sad: { icon:'🫂', title:"It's okay to not be okay", body:"Your feelings are valid. Would a breathing exercise or community help? We're here with you." },
+  anxious: { icon:'🌬️', title:"Let's breathe through this", body:"Anxiety is just your body caring too much. Try a breathing exercise — just 2 minutes can help." },
+  angry: { icon:'💨', title:"Your feelings are so valid", body:"Stress is tough. Let's release some of that energy with a guided breath or talk to someone." },
+  calm: { icon:'✨', title:"Beautiful calm energy!", body:"You're centered and grounded. This is a perfect moment to journal or check in with the community." },
+};
+
+function doLogin() {
+  const nameInput = document.getElementById('loginName');
+  const name = nameInput ? nameInput.value.trim() : '';
+  document.getElementById('userName').textContent = name || 'there';
+  goTo('home');
+}
+
+// ═══════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════
+const mainScreens = ['home','coping','history','insights','community'];
+
+function goTo(screenId) {
+  const current = document.querySelector('.screen.active');
+  if (current) { current.classList.remove('active'); }
+
+  const next = document.getElementById('screen-' + screenId);
+  if (!next) return;
+  next.classList.add('active', 'slide-in');
+  setTimeout(() => next.classList.remove('slide-in'), 400);
+
+  state.currentScreen = screenId;
+
+  const nav = document.getElementById('bottomNav');
+  if (mainScreens.includes(screenId)) {
+    nav.classList.add('visible');
+  } else {
+    nav.classList.remove('visible');
+  }
+
+  // Update active nav btn
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const navBtn = document.getElementById('nav-' + screenId);
+  if (navBtn) navBtn.classList.add('active');
+
+  // Init screens
+  if (screenId === 'history') initHistory();
+}
+
+// ═══════════════════════════════
+// MOOD SELECTION
+// ═══════════════════════════════
+function selectMood(btn, mood, emoji, name) {
+  document.querySelectorAll('.mood-emoji-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.currentMood = mood;
+
+  const msg = moodMessages[mood];
+  document.getElementById('msgIcon').textContent = msg.icon;
+  document.getElementById('msgTitle').textContent = msg.title;
+  document.getElementById('msgBody').textContent = msg.body;
+  document.getElementById('mood-message').classList.add('visible');
+
+  // Save today's mood
+  state.moodHistory[state.moodHistory.length - 1] = { date:'Today', emoji, mood, name, note:'Just logged', color: getMoodColor(mood) };
+}
+
+function getMoodColor(mood) {
+  const colors = { happy:'#c8b4e8', sad:'#b4d4f0', anxious:'#f5d4b4', angry:'#f5c6d8', calm:'#b4e8d4' };
+  return colors[mood] || '#c8b4e8';
+}
+
+// ═══════════════════════════════
+// BREATHING
+// ═══════════════════════════════
+let breathPhase = 0;
+const breathPhases = [
+  { label: 'Breathe\nIn', instruction: '🌬️ Breathe in... slowly...', duration: 4000 },
+  { label: 'Hold', instruction: '✨ Hold gently...', duration: 4000 },
+  { label: 'Breathe\nOut', instruction: '💨 Breathe out... release...', duration: 4000 },
+  { label: 'Rest', instruction: '🌿 Rest... you\'re doing great...', duration: 2000 },
+];
+
+function toggleBreath() {
+  const btn = document.getElementById('breathBtn');
+  const container = document.getElementById('breathingContainer');
+
+  if (!state.breathActive) {
+    state.breathActive = true;
+    btn.textContent = 'Stop';
+    btn.style.background = 'linear-gradient(135deg, var(--sky), var(--mint))';
+    container.classList.add('breath-active');
+    runBreathCycle();
+  } else {
+    state.breathActive = false;
+    btn.textContent = 'Start Breathing';
+    btn.style.background = '';
+    container.classList.remove('breath-active');
+    clearTimeout(state.breathTimeout);
+    document.getElementById('breathLabel').textContent = 'Tap\nStart';
+    document.getElementById('breathInstruction').textContent = 'Ready to breathe?';
+  }
+}
+
+function runBreathCycle() {
+  if (!state.breathActive) return;
+  const phase = breathPhases[breathPhase % breathPhases.length];
+  document.getElementById('breathLabel').innerHTML = phase.label.replace('\n','<br>');
+  document.getElementById('breathInstruction').textContent = phase.instruction;
+  breathPhase++;
+  state.breathTimeout = setTimeout(runBreathCycle, phase.duration);
+}
+
+// ═══════════════════════════════
+// HISTORY CHART
+// ═══════════════════════════════
+function initHistory() {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '';
+  state.moodHistory.forEach(day => {
+    list.innerHTML += `
+      <div class="history-day-card">
+        <div class="hist-date">${day.date}</div>
+        <div class="hist-emoji">${day.emoji}</div>
+        <div class="hist-info">
+          <div class="hist-mood-name">${day.name}</div>
+          <div class="hist-note">${day.note}</div>
+        </div>
+        <div class="hist-dot" style="background:${day.color};"></div>
+      </div>`;
+  });
+
+  // Chart
+  setTimeout(() => {
+    const existing = Chart.getChart('moodChart');
+    if (existing) existing.destroy();
+
+    const moodValues = { happy: 5, calm: 4, sad: 2, anxious: 3, angry: 1 };
+    const data = state.moodHistory.map(d => moodValues[d.mood] || 3);
+    const colors = state.moodHistory.map(d => d.color);
+
+    new Chart(document.getElementById('moodChart'), {
+      type: 'bar',
+      data: {
+        labels: state.moodHistory.map(d => d.date),
+        datasets: [{
+          data,
+          backgroundColor: colors,
+          borderRadius: 8,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { display: false, min: 0, max: 6 },
+          x: { grid: { display: false }, ticks: { font: { family: 'Poppins', size: 11 }, color: '#9b91b0' } }
+        },
+        responsive: true,
+        maintainAspectRatio: true,
+      }
+    });
+  }, 100);
+}
+
+// ═══════════════════════════════
+// COMMUNITY
+// ═══════════════════════════════
+function filterTopic(btn, topic) {
+  document.querySelectorAll('.topic-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  state.currentTopic = topic;
+  renderCommunity();
+}
+
+function renderCommunity() {
+  const feed = document.getElementById('communityFeed');
+  const posts = state.currentTopic === 'all'
+    ? state.communityPosts
+    : state.communityPosts.filter(p => p.topic === state.currentTopic);
+
+  feed.innerHTML = posts.map(p => `
+    <div class="community-post">
+      <div class="post-header">
+        <div class="anon-avatar" style="background:linear-gradient(135deg,rgba(200,180,232,0.4),rgba(245,198,216,0.3));">${p.avatar}</div>
+        <div class="post-meta">
+          <div class="post-user">${p.user}</div>
+          <div class="post-time">${p.time}</div>
+        </div>
+        <div class="post-mood-tag" style="background:${p.tagColor};">${p.tag}</div>
+      </div>
+      <div class="post-body">${p.body}</div>
+      <div class="post-reactions">
+        <button class="reaction-btn ${state.reactions[p.id+'h'] ? 'reacted' : ''}" onclick="react(${p.id},'h')">❤️ ${p.hearts + (state.reactions[p.id+'h']?1:0)}</button>
+        <button class="reaction-btn ${state.reactions[p.id+'n'] ? 'reacted' : ''}" onclick="react(${p.id},'n')">🤗 ${p.notAlone + (state.reactions[p.id+'n']?1:0)}</button>
+        <button class="reaction-btn" onclick="openAnonChat()">💬 Reply</button>
+        <button class="post-report">⚑ Report</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function react(postId, type) {
+  const key = postId + type;
+  state.reactions[key] = !state.reactions[key];
+  renderCommunity();
+}
+
+function openNewPost() {
+  document.getElementById('postContent').value = '';
+  document.querySelectorAll('.mood-tag-option').forEach(t => t.classList.remove('selected'));
+  state.selectedPostTag = '';
+  document.getElementById('newPostModal').classList.add('visible');
+}
+
+function selectPostTag(el, tag) {
+  document.querySelectorAll('.mood-tag-option').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+  state.selectedPostTag = tag;
+}
+
+function submitPost() {
+  const content = document.getElementById('postContent').value.trim();
+  if (!content) return;
+  const avatars = ['🌺','🦋','🌙','⭐','🌊','🌿','🌸'];
+  const names = ['Starlight', 'Moon Flower', 'Gentle Wave', 'Soft Cloud', 'Quiet Rose', 'Brave Fern'];
+  state.communityPosts.unshift({
+    id: Date.now(), avatar: avatars[Math.floor(Math.random()*avatars.length)],
+    user: names[Math.floor(Math.random()*names.length)], time: 'Just now',
+    tag: state.selectedPostTag || 'sharing', tagColor: 'rgba(200,180,232,0.5)',
+    body: content, hearts: 0, notAlone: 0, topic: 'all'
+  });
+  closeModal('newPostModal');
+  renderCommunity();
+}
+
+// ═══════════════════════════════
+// ANON CHAT
+// ═══════════════════════════════
+function openAnonChat() {
+  goTo('anon-chat');
+}
+
+const anonReplies = [
+  "I hear you 💜 You're not carrying this alone.",
+  "That sounds really hard. You're so brave for sharing it here 🌸",
+  "Sending you the biggest virtual hug right now 🤗",
+  "Your feelings make complete sense. Be gentle with yourself 🌿",
+  "We're all here with you. This community sees you 💜",
+  "You matter so much. Thank you for trusting us with this ✨",
+];
+
+function sendAnonMessage() {
+  const input = document.getElementById('anonInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  const msgs = document.getElementById('anonMessages');
+  const now = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+  msgs.innerHTML += `
+    <div class="chat-bubble sent">
+      <div>${msg}</div>
+      <div class="bubble-time">${now}</div>
+    </div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  setTimeout(() => {
+    const reply = anonReplies[Math.floor(Math.random() * anonReplies.length)];
+    msgs.innerHTML += `
+      <div class="chat-bubble received" style="animation:fadeUp 0.3s ease;">
+        <div>${reply}</div>
+        <div class="bubble-time">${now}</div>
+        <div class="bubble-reactions">
+          <button class="bubble-emoji-btn">💜</button>
+          <button class="bubble-emoji-btn">🤗</button>
+        </div>
+      </div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 1200);
+}
+
+function handleAnonEnter(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAnonMessage(); }
+}
+
+// ═══════════════════════════════
+// COORDINATOR
+// ═══════════════════════════════
+function showPrivacyModal() {
+  document.getElementById('privacyModal').classList.add('visible');
+}
+
+function openCoordinator() {
+  closeModal('privacyModal');
+  goTo('coordinator');
+  initBooking();
+}
+
+const coordReplies = [
+  "Thank you for sharing that with me 💜 Can you tell me more about when you first started feeling this way?",
+  "I really hear you. What you're experiencing sounds challenging, and it makes complete sense. You're doing the right thing by reaching out.",
+  "You're so brave for being here today. Let's work through this together, one step at a time 🌸",
+  "That's a really important insight. Many people feel this way, and you're definitely not alone. What would feel most supportive right now?",
+];
+
+function sendCoordMessage() {
+  const input = document.getElementById('coordInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  const msgs = document.getElementById('coordMessages');
+  const now = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+  msgs.innerHTML += `
+    <div class="chat-bubble sent">
+      <div>${msg}</div>
+      <div class="bubble-time">${now}</div>
+    </div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  setTimeout(() => {
+    const reply = coordReplies[Math.floor(Math.random() * coordReplies.length)];
+    msgs.innerHTML += `
+      <div class="chat-bubble received">
+        <div>${reply}</div>
+        <div class="bubble-time">${now}</div>
+      </div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 1600);
+}
+
+function handleCoordEnter(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCoordMessage(); }
+}
+
+function initBooking() {
+  const today = new Date();
+  const datePicker = document.getElementById('datePicker');
+  datePicker.innerHTML = '';
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const chip = document.createElement('div');
+    chip.className = 'date-chip';
+    chip.innerHTML = `<div class="d-day">${days[d.getDay()]}</div><div class="d-num">${d.getDate()}</div>`;
+    chip.onclick = () => {
+      document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      state.selectedDate = d;
+      checkBookingReady();
+    };
+    datePicker.appendChild(chip);
+  }
+
+  const times = ['9:00 AM','10:00 AM','11:30 AM','1:00 PM','2:30 PM','4:00 PM','5:30 PM','6:00 PM','7:00 PM'];
+  const timePicker = document.getElementById('timePicker');
+  timePicker.innerHTML = '';
+  times.forEach(t => {
+    const chip = document.createElement('div');
+    chip.className = 'time-chip';
+    chip.textContent = t;
+    chip.onclick = () => {
+      document.querySelectorAll('.time-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      state.selectedTime = t;
+      checkBookingReady();
+    };
+    timePicker.appendChild(chip);
+  });
+}
+
+function checkBookingReady() {
+  const btn = document.getElementById('bookBtn');
+  if (state.selectedDate && state.selectedTime) {
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+  }
+}
+
+function confirmBooking() {
+  document.getElementById('bookingModal').classList.add('visible');
+  state.selectedDate = null;
+  state.selectedTime = null;
+  document.querySelectorAll('.date-chip, .time-chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('bookBtn').style.opacity = '0.5';
+  document.getElementById('bookBtn').style.pointerEvents = 'none';
+}
+
+// ═══════════════════════════════
+// MODALS
+// ═══════════════════════════════
+function closeModal(id) {
+  document.getElementById(id).classList.remove('visible');
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeModal(overlay.id);
+  });
+});
+
+// ═══════════════════════════════
+// INIT
+// ═══════════════════════════════
+(function init() {
+  renderCommunity();
+})();
+</script>
+</body>
+</html>
